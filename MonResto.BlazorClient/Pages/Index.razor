@@ -1,0 +1,42 @@
+@page "/"
+@inject CategoryService CategoryService
+@inject ArticleService ArticleService
+
+<h3>Bienvenue chez MonResto</h3>
+
+@if (_categories is null)
+{
+    <p>Chargement...</p>
+}
+else
+{
+    <h5>Catégories</h5>
+    <ul>
+        @foreach (var cat in _categories)
+        {
+            <li><a href=$"/articles/{cat.CategoryId}">@cat.Name</a> - @cat.Description</li>
+        }
+    </ul>
+}
+
+@if (_popular is not null)
+{
+    <h5>Articles populaires</h5>
+    <ul>
+        @foreach (var article in _popular)
+        {
+            <li><a href=$"/article/{article.ArticleId}">@article.Name</a> - @article.Price €</li>
+        }
+    </ul>
+}
+
+@code {
+    private IEnumerable<MonResto.BlazorClient.Models.CategoryModel>? _categories;
+    private IEnumerable<MonResto.BlazorClient.Models.ArticleModel>? _popular;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _categories = await CategoryService.GetCategories();
+        _popular = (await ArticleService.GetArticles()).Take(5);
+    }
+}
