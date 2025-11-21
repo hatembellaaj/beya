@@ -1,0 +1,39 @@
+@page "/articles"
+@page "/articles/{CategoryId:int}"
+@inject ArticleService ArticleService
+@inject NavigationManager Nav
+
+<h3>Articles</h3>
+
+@if (_articles is null)
+{
+    <p>Chargement...</p>
+}
+else
+{
+    <div class="row">
+        @foreach (var article in _articles)
+        {
+            <div class="col-4 mb-3">
+                <div class="card p-3">
+                    <h5>@article.Name</h5>
+                    <p>@article.Description</p>
+                    <strong>@article.Price €</strong>
+                    <button class="btn btn-primary mt-2" @onclick="(() => Nav.NavigateTo($"/article/{article.ArticleId}"))">Voir</button>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public int? CategoryId { get; set; }
+    private IEnumerable<MonResto.BlazorClient.Models.ArticleModel>? _articles;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _articles = CategoryId.HasValue
+            ? await ArticleService.GetByCategory(CategoryId.Value)
+            : await ArticleService.GetArticles();
+    }
+}

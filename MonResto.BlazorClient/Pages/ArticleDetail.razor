@@ -1,0 +1,38 @@
+@page "/article/{Id:int}"
+@inject ArticleService ArticleService
+@inject CartService CartService
+
+<h3>Détail Article</h3>
+
+@if (_article is null)
+{
+    <p>Chargement...</p>
+}
+else
+{
+    <div>
+        <h4>@_article.Name</h4>
+        <p>@_article.Description</p>
+        <strong>@_article.Price €</strong>
+        <div class="mt-3">
+            <input type="number" min="1" @bind="_quantity" />
+            <button class="btn btn-success" @onclick="AddToCart">Ajouter au panier</button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private MonResto.BlazorClient.Models.ArticleModel? _article;
+    private int _quantity = 1;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _article = await ArticleService.GetArticle(Id);
+    }
+
+    private async Task AddToCart()
+    {
+        await CartService.AddToCart(Id, _quantity);
+    }
+}

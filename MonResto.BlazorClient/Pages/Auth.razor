@@ -1,0 +1,48 @@
+@page "/auth"
+@inject AuthService AuthService
+@inject NavigationManager Nav
+
+<h3>Authentification</h3>
+
+<div class="row">
+    <div class="col-6">
+        <h5>Login</h5>
+        <input class="form-control mb-2" placeholder="Utilisateur" @bind="_loginUser" />
+        <input class="form-control mb-2" placeholder="Mot de passe" type="password" @bind="_loginPassword" />
+        <button class="btn btn-primary" @onclick="Login">Se connecter</button>
+    </div>
+    <div class="col-6">
+        <h5>Register</h5>
+        <input class="form-control mb-2" placeholder="Utilisateur" @bind="_regUser" />
+        <input class="form-control mb-2" placeholder="Email" @bind="_regEmail" />
+        <input class="form-control mb-2" placeholder="Mot de passe" type="password" @bind="_regPassword" />
+        <button class="btn btn-success" @onclick="Register">Créer un compte</button>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(_message))
+{
+    <p>@_message</p>
+}
+
+@code {
+    private string _loginUser = string.Empty;
+    private string _loginPassword = string.Empty;
+    private string _regUser = string.Empty;
+    private string _regEmail = string.Empty;
+    private string _regPassword = string.Empty;
+    private string _message = string.Empty;
+
+    private async Task Login()
+    {
+        var ok = await AuthService.Login(_loginUser, _loginPassword);
+        _message = ok ? "Connecté" : "Echec";
+        if (ok) Nav.NavigateTo("/");
+    }
+
+    private async Task Register()
+    {
+        var ok = await AuthService.Register(_regUser, _regEmail, _regPassword);
+        _message = ok ? "Compte créé" : "Echec inscription";
+    }
+}
