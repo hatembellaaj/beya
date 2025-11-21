@@ -1,0 +1,65 @@
+@page "/cart"
+@inject CartService CartService
+@inject OrderService OrderService
+
+<h3>Panier</h3>
+
+@if (_items is null)
+{
+    <p>Chargement...</p>
+}
+else if (!_items.Any())
+{
+    <p>Votre panier est vide.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr><th>Article</th><th>Quantité</th><th>Prix</th><th></th></tr>
+        </thead>
+        <tbody>
+            @foreach (var item in _items)
+            {
+                <tr>
+                    <td>@item.ArticleName</td>
+                    <td><input type="number" min="1" value="@item.Quantity" @onchange="e => Update(item, e.Value?.ToString())" /></td>
+                    <td>@(item.Price * item.Quantity) €</td>
+                    <td><button class="btn btn-danger" @onclick="(() => Remove(item.CartItemId))">Supprimer</button></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <p><strong>Total : @_items.Sum(i => i.Price * i.Quantity) €</strong></p>
+    <button class="btn btn-primary" @onclick="CreateOrder">Passer commande</button>
+}
+
+@code {
+    private List<MonResto.BlazorClient.Models.CartItemModel>? _items;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _items = (await CartService.GetCart()).ToList();
+    }
+
+    private async Task Update(MonResto.BlazorClient.Models.CartItemModel item, string? value)
+    {
+        if (int.TryParse(value, out var qty))
+        {
+            await CartService.UpdateQuantity(item.CartItemId, qty);
+            _items = (await CartService.GetCart()).ToList();
+        }
+    }
+
+    private async Task Remove(int cartItemId)
+    {
+        await CartService.Remove(cartItemId);
+        _items = (await CartService.GetCart()).ToList();
+    }
+
+    private async Task CreateOrder()
+    {
+        await OrderService.CreateOrder();
+        _items = (await CartService.GetCart()).ToList();
+    }
+}

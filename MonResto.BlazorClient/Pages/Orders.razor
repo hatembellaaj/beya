@@ -1,0 +1,39 @@
+@page "/orders"
+@inject OrderService OrderService
+
+<h3>Historique des commandes</h3>
+
+@if (_orders is null)
+{
+    <p>Chargement...</p>
+}
+else if (!_orders.Any())
+{
+    <p>Aucune commande.</p>
+}
+else
+{
+    foreach (var order in _orders)
+    {
+        <div class="card mb-3 p-3">
+            <h5>Commande #@order.OrderId - @order.Status</h5>
+            <p>Date : @order.OrderDate.ToLocalTime()</p>
+            <ul>
+                @foreach (var item in order.Items)
+                {
+                    <li>@item.ArticleName x @item.Quantity (@item.UnitPrice €)</li>
+                }
+            </ul>
+            <strong>Total : @order.TotalPrice €</strong>
+        </div>
+    }
+}
+
+@code {
+    private IEnumerable<MonResto.BlazorClient.Models.OrderModel>? _orders;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _orders = await OrderService.GetOrders();
+    }
+}
