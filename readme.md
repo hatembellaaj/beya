@@ -107,6 +107,33 @@ DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 dotnet run
 ## 🧪 Tests
 - Des scénarios manuels sont disponibles via Swagger. Vous pouvez ajouter des tests d’intégration ou unitaires selon vos besoins (xUnit, NUnit…).
 
+### Tester le backend (API)
+1. **Lancer l’API** : assurez-vous que `MonResto.WebAPI` tourne (voir section "Mise en route").
+2. **Tester via Swagger** (recommandé) :
+   - Ouvrez `https://localhost:5001/swagger`.
+   - Cliquez sur **Authorize** et collez un token JWT obtenu via `/api/account/login` (format `Bearer <token>`).
+   - Exécutez les endpoints protégés (panier/commandes) ou publics (catégories/articles).
+3. **Tester via cURL** (exemples) :
+   ```bash
+   # Récupérer les catégories (public)
+   curl -k https://localhost:5001/api/categories
+
+   # Login pour obtenir un token
+   curl -k -X POST https://localhost:5001/api/account/login \
+     -H "Content-Type: application/json" \
+     -d '{"email":"demo@monresto.com","password":"Passw0rd!"}'
+
+   # Appel protégé avec le token reçu
+   curl -k https://localhost:5001/api/orders \
+     -H "Authorization: Bearer <votre_token>"
+   ```
+4. **Tester via Postman/Bruno** :
+   - Importez l’URL Swagger (`https://localhost:5001/swagger/v1/swagger.json`) pour générer la collection.
+   - Ajoutez une variable d’environnement `token` et configurez l’auth Bearer pour les routes protégées.
+5. **Tests automatiques (optionnel)** :
+   - Ajoutez un projet de tests (xUnit/NUnit) et référencez `MonResto.WebAPI`/`MonResto.Data`.
+   - Utilisez `WebApplicationFactory` pour démarrer l’API en mémoire et tester les endpoints.
+
 ## 🤝 Contribution
 - Forkez le repo, créez une branche, validez vos modifications et ouvrez une PR.
 - Respectez l’architecture existante (Domain/Data/WebAPI/BlazorClient) et le pattern Repository.
