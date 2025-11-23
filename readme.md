@@ -60,10 +60,18 @@ Modifiez `MonResto.WebAPI/appsettings.json` (ou variables d’environnement) :
 
 ## 🚀 Mise en route
 ### 1) Restaurer et compiler
+> ℹ️ Sous Windows, **ne définissez pas** `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT` : les commandes échouent. Utilisez simplement `dotnet restore`/`dotnet build`.
+
 ```bash
 cd MonResto.WebAPI
+
+# Linux/macOS (si vous avez des soucis de locales)
 DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 dotnet restore
 DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 dotnet build
+
+# Windows
+dotnet restore
+dotnet build
 ```
 
 ### Données de démo automatiques
@@ -73,12 +81,20 @@ Ces données sont générées automatiquement au démarrage de l'API si la base 
 
 ### 2) Appliquer les migrations (PostgreSQL)
 ```bash
+# Linux/macOS
 DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 dotnet ef database update --project ../MonResto.Data
+
+# Windows
+dotnet ef database update --project ../MonResto.Data
 ```
 
 ### 3) Lancer l’API
 ```bash
+# Linux/macOS
 DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 dotnet run
+
+# Windows
+dotnet run
 ```
 - Swagger disponible sur `https://localhost:5001/swagger` (ou `http://localhost:5000`).
 - Ajoutez un token JWT via le bouton **Authorize** pour tester les endpoints protégés.
@@ -86,8 +102,11 @@ DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 dotnet run
 ### 4) Lancer le client Blazor WebAssembly
 ```bash
 cd ../MonResto.BlazorClient
-DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 dotnet restore
-DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 dotnet run
+DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 dotnet restore  # Linux/macOS
+DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 dotnet run      # Linux/macOS
+
+dotnet restore  # Windows
+dotnet run      # Windows
 ```
 - L’application consomme l’API configurée dans `Program.cs`/`appsettings` du client. Adaptez l’URL si besoin.
 
