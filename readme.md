@@ -97,8 +97,8 @@ dotnet ef database update --project ../MonResto.Data
 # Linux/macOS
 DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 dotnet run
 
-# Windows
-dotnet run
+# Windows (depuis la racine du repo)
+dotnet run --project MonResto.WebAPI/MonResto.WebAPI.csproj
 ```
 - Swagger disponible sur `https://localhost:5001/swagger` (ou `http://localhost:5000`).
 - Ajoutez un token JWT via le bouton **Authorize** pour tester les endpoints protégés.
