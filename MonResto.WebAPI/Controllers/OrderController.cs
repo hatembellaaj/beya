@@ -26,6 +26,17 @@ public class OrderController : ControllerBase
         _mapper = mapper;
     }
 
+    [HttpPatch("{orderId:int}/status"), Authorize(Roles = "Admin")]
+    public async Task<ActionResult<OrderDto>> UpdateStatus(int orderId, [FromBody] UpdateOrderStatusDto dto)
+    {
+        var existing = await _orderRepository.GetById(orderId);
+        if (existing is null) return NotFound();
+
+        var updated = await _orderRepository.UpdateStatus(orderId, dto.Status);
+        var reloaded = await _orderRepository.GetById(updated.OrderId) ?? updated;
+        return Ok(_mapper.Map<OrderDto>(reloaded));
+    }
+
     [HttpGet]
     public async Task<ActionResult<IEnumerable<OrderDto>>> History()
     {

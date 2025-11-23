@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MonResto.Data.Context;
 using MonResto.Data.Repositories;
+using MonResto.Data.Seed;
 using MonResto.Domain.Interfaces;
 using MonResto.WebAPI.Authentication;
 using MonResto.WebAPI.Services;
@@ -90,6 +91,16 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<AppDbContext>();
+    var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
+    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+    await DatabaseSeeder.SeedAsync(context, userManager, roleManager);
+}
+
 app.MapControllers();
 
 app.Run();
