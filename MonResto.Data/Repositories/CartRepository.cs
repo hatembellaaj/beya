@@ -42,6 +42,12 @@ public class CartRepository : ICartRepository
         return await _context.CartItems.Include(ci => ci.Article).Where(ci => ci.UserId == userId).ToListAsync();
     }
 
+    public async Task<CartItem?> GetById(string userId, int cartItemId)
+    {
+        return await _context.CartItems.Include(ci => ci.Article)
+            .FirstOrDefaultAsync(ci => ci.UserId == userId && ci.CartItemId == cartItemId);
+    }
+
     public async Task<CartItem?> GetItem(string userId, int articleId)
     {
         return await _context.CartItems.FirstOrDefaultAsync(ci => ci.UserId == userId && ci.ArticleId == articleId);

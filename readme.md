@@ -66,6 +66,11 @@ DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 dotnet restore
 DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 dotnet build
 ```
 
+### Données de démo automatiques
+- Un administrateur par défaut est créé avec l'email `admin@monresto.com` et le mot de passe `Passw0rd!` (rôle `Admin`).
+- Des exemples de catégories, articles et un menu "Menu Gourmand" sont insérés lors du premier lancement.
+Ces données sont générées automatiquement au démarrage de l'API si la base est vide.
+
 ### 2) Appliquer les migrations (PostgreSQL)
 ```bash
 DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 dotnet ef database update --project ../MonResto.Data
@@ -89,13 +94,14 @@ DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 dotnet run
 ## 🔐 Authentification & Autorisations
 - Enregistrement (`/api/account/register`) et connexion (`/api/account/login`) retournent un JWT.
 - Les routes panier/commandes exigent l’en-tête `Authorization: Bearer <token>`.
+- Un rôle `Admin` est créé automatiquement ; il peut mettre à jour l’état d’une commande via `PATCH /api/order/{id}/status` (payload : `{ "status": "Paid" | "Delivered" }`).
 - Identity gère les utilisateurs, mots de passe hashés et rôles extensibles.
 
 ## 📦 Fonctionnalités principales
 - CRUD Catégories & Articles, recherche par nom, filtre par catégorie.
 - Gestion des Menus avec relation many-to-many (ajout/suppression d’articles).
-- Panier utilisateur : ajout, modification de quantité, suppression, consultation.
-- Commandes : création avec calcul automatique du total, historique par utilisateur, statut (`Pending`, `Paid`, `Delivered`).
+- Panier utilisateur : ajout, modification de quantité, suppression, consultation, résumé (`/api/cart/summary`) avec total quantité/prix.
+- Commandes : création avec calcul automatique du total, historique par utilisateur, statut (`Pending`, `Paid`, `Delivered`), mise à jour du statut par un administrateur.
 - Documentation Swagger sécurisée.
 - Front-end Blazor : navigation des catégories/menus, détails article, panier, commandes, authentification.
 

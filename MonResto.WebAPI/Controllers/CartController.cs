@@ -32,6 +32,17 @@ public class CartController : ControllerBase
         return Ok(_mapper.Map<IEnumerable<CartItemDto>>(items));
     }
 
+    [HttpGet("summary")]
+    public async Task<ActionResult<CartSummaryDto>> Summary()
+    {
+        var userId = User.Identity?.Name;
+        if (userId is null) return Unauthorized();
+        var items = await _cartRepository.GetCart(userId);
+        var totalQuantity = items.Sum(ci => ci.Quantity);
+        var totalPrice = items.Sum(ci => (ci.Article?.Price ?? 0) * ci.Quantity);
+        return Ok(new CartSummaryDto(totalQuantity, totalPrice));
+    }
+
     [HttpPost]
     public async Task<ActionResult<CartItemDto>> Post([FromBody] CartItemCreateDto dto)
     {
@@ -57,7 +68,7 @@ public class CartController : ControllerBase
     {
         var userId = User.Identity?.Name;
         if (userId is null) return Unauthorized();
-        var item = await _cartRepository.GetCart(userId).ContinueWith(t => t.Result.FirstOrDefault(ci => ci.CartItemId == cartItemId));
+        var item = await _cartRepository.GetById(userId, cartItemId);
         if (item is null) return NotFound();
         item.Quantity = dto.Quantity;
         await _cartRepository.Update(item);
