@@ -80,7 +80,11 @@ dotnet build
 Ces données sont générées automatiquement au démarrage de l'API si la base est vide.
 
 ### 2) Appliquer les migrations (PostgreSQL)
+Installez l’outil local `dotnet-ef` défini dans le manifeste avant d’exécuter les commandes ci-dessous :
 ```bash
+# Depuis la racine du repo
+dotnet tool restore
+
 # Linux/macOS
 DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 dotnet ef database update --project ../MonResto.Data
 
