@@ -80,16 +80,20 @@ dotnet build
 Ces données sont générées automatiquement au démarrage de l'API si la base est vide.
 
 ### 2) Appliquer les migrations (PostgreSQL)
-Installez l’outil local `dotnet-ef` défini dans le manifeste avant d’exécuter les commandes ci-dessous :
+Installez l’outil local `dotnet-ef` défini dans le manifeste avant d’exécuter les commandes ci-dessous. 💡 **Le chemin du projet doit rester dans le repo courant** (ne mettez pas `../MonResto.Data`, qui pointe en dehors du dossier et provoque l’erreur « Le fichier projet n'existe pas »).
 ```bash
 # Depuis la racine du repo
 dotnet tool restore
 
 # Linux/macOS
-DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 dotnet ef database update --project ../MonResto.Data
+DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 dotnet ef database update \
+  --project MonResto.Data/MonResto.Data.csproj \
+  --startup-project MonResto.WebAPI/MonResto.WebAPI.csproj
 
 # Windows
-dotnet ef database update --project ../MonResto.Data
+dotnet ef database update \
+  --project MonResto.Data/MonResto.Data.csproj \
+  --startup-project MonResto.WebAPI/MonResto.WebAPI.csproj
 ```
 
 ### 3) Lancer l’API
