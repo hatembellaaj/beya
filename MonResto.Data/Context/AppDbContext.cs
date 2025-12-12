@@ -36,6 +36,30 @@ public class AppDbContext : IdentityDbContext<IdentityUser>
             .HasForeignKey(ma => ma.ArticleId);
 
         builder.Entity<Article>()
+            .HasOne(a => a.Category)
+            .WithMany(c => c.Articles)
+            .HasForeignKey(a => a.CategoryId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<CartItem>()
+            .HasOne(ci => ci.Article)
+            .WithMany(a => a.CartItems)
+            .HasForeignKey(ci => ci.ArticleId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<OrderItem>()
+            .HasOne(oi => oi.Article)
+            .WithMany(a => a.OrderItems)
+            .HasForeignKey(oi => oi.ArticleId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<OrderItem>()
+            .HasOne(oi => oi.Order!)
+            .WithMany(o => o.OrderItems)
+            .HasForeignKey(oi => oi.OrderId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<Article>()
             .Property(a => a.Price)
             .HasPrecision(18, 2);
 
