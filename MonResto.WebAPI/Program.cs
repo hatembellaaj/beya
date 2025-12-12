@@ -10,6 +10,7 @@ using MonResto.Data.Seed;
 using MonResto.Domain.Interfaces;
 using MonResto.WebAPI.Authentication;
 using MonResto.WebAPI.Services;
+using Npgsql.EntityFrameworkCore.PostgreSQL;
 
 var builder = WebApplication.CreateBuilder(args);
 
