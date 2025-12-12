@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MonResto.Data.Context;
 using MonResto.Domain.Entities;
+using System.Data;
 using System.Data.Common;
 
 namespace MonResto.Data.Seed;
@@ -24,11 +25,21 @@ public static class DatabaseSeeder
 
     private static async Task EnsureIdentitySchemaAsync(AppDbContext context)
     {
-        await using var connection = context.Database.GetDbConnection();
-        await connection.OpenAsync();
+        var connection = context.Database.GetDbConnection();
+        var shouldClose = connection.State != ConnectionState.Open;
+
+        if (shouldClose)
+        {
+            await connection.OpenAsync();
+        }
 
         if (await TableExistsAsync(connection, "AspNetRoles"))
         {
+            if (shouldClose)
+            {
+                await connection.CloseAsync();
+            }
+
             return;
         }
 
@@ -116,6 +127,11 @@ CREATE UNIQUE INDEX IF NOT EXISTS "UserNameIndex" ON "AspNetUsers" ("NormalizedU
         await using var command = connection.CreateCommand();
         command.CommandText = createIdentitySql;
         await command.ExecuteNonQueryAsync();
+
+        if (shouldClose)
+        {
+            await connection.CloseAsync();
+        }
     }
 
     private static async Task<bool> TableExistsAsync(DbConnection connection, string tableName)
