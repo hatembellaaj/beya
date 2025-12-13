@@ -124,6 +124,30 @@ dotnet run      # Windows
 - Un rôle `Admin` est créé automatiquement ; il peut mettre à jour l’état d’une commande via `PATCH /api/order/{id}/status` (payload : `{ "status": "Paid" | "Delivered" }`).
 - Identity gère les utilisateurs, mots de passe hashés et rôles extensibles.
 
+### 📚 Guide d’authentification de bout en bout
+1) **Configurer JWT et la base**
+- Renseignez `Issuer`, `Audience`, `SecretKey` et la chaîne PostgreSQL dans `MonResto.WebAPI/appsettings.json`.
+- Lancez l’API pour appliquer les migrations et insérer les données de démo (dont l’admin `admin@monresto.com` / `Passw0rd!`).
+
+2) **Enregistrer un utilisateur**
+- Endpoint : `POST /api/account/register`
+- Corps JSON : `{ "userName": "<pseudo>", "email": "<email>", "password": "<motdepasse>" }`
+- Retourne 200 OK ou les erreurs de validation Identity.
+
+3) **Se connecter et obtenir un JWT**
+- Endpoint : `POST /api/account/login`
+- Corps JSON : `{ "userName": "<pseudo>", "password": "<motdepasse>" }`
+- L’API valide les identifiants et renvoie `{ userName, token, expires }` avec un JWT signé contenant les claims usuels (`sub`, `nameidentifier`, etc.).
+
+4) **Appeler les routes protégées**
+- Récupérez le `token` de la réponse de login puis ajoutez l’en-tête `Authorization: Bearer <token>` aux appels panier/commandes.
+- Sur Swagger : cliquez sur **Authorize**, collez `Bearer <token>`, puis exécutez les endpoints.
+- Exemple cURL : `curl -k -H "Authorization: Bearer <token>" https://localhost:5001/api/orders`
+
+5) **Validation côté serveur**
+- `Program.cs` configure `AddAuthentication().AddJwtBearer()` avec les valeurs `Issuer`/`Audience`/clé pour vérifier signature et expiration.
+- Le pipeline `UseAuthentication()` + `UseAuthorization()` bloque l’accès aux contrôleurs protégés sans jeton valide.
+
 ## 📦 Fonctionnalités principales
 - CRUD Catégories & Articles, recherche par nom, filtre par catégorie.
 - Gestion des Menus avec relation many-to-many (ajout/suppression d’articles).
