@@ -11,8 +11,8 @@
             <h1 class="fw-bold">Bienvenue chez MonResto</h1>
             <p class="lead mb-4">Découvrez nos catégories, composez votre menu, puis suivez votre panier en un coup d'œil.</p>
             <div class="d-flex gap-3 flex-wrap">
-                <button class="btn hero-cta" @onclick="(() => Nav.NavigateTo("/articles"))">Explorer les articles</button>
-                <button class="btn btn-outline-light" @onclick="(() => Nav.NavigateTo("/cart"))">Voir mon panier</button>
+                <button class="btn hero-cta" @onclick='() => Nav.NavigateTo("/articles")'>Explorer les articles</button>
+                <button class="btn btn-outline-light" @onclick='() => Nav.NavigateTo("/cart")'>Voir mon panier</button>
             </div>
         </div>
         <div class="col-lg-4 text-end">
@@ -24,10 +24,10 @@
 </div>
 
 <div class="quick-actions d-grid gap-3 gap-lg-4 mb-4" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
-    <button class="btn btn-light border" @onclick="(() => Nav.NavigateTo("/articles"))">📜 Liste des articles</button>
-    <button class="btn btn-light border" @onclick="(() => Nav.NavigateTo("/articles"))">🧭 Liste des catégories</button>
-    <button class="btn btn-light border" @onclick="(() => Nav.NavigateTo("/cart"))">🛒 Visualiser le panier</button>
-    <button class="btn btn-light border" @onclick="(() => Nav.NavigateTo("/orders"))">📦 Suivre mes commandes</button>
+    <button class="btn btn-light border" @onclick='() => Nav.NavigateTo("/articles")'>📜 Liste des articles</button>
+    <button class="btn btn-light border" @onclick='() => Nav.NavigateTo("/articles")'>🧭 Liste des catégories</button>
+    <button class="btn btn-light border" @onclick='() => Nav.NavigateTo("/cart")'>🛒 Visualiser le panier</button>
+    <button class="btn btn-light border" @onclick='() => Nav.NavigateTo("/orders")'>📦 Suivre mes commandes</button>
 </div>
 
 @if (_categories is null)
@@ -50,7 +50,7 @@ else
                         <span class="badge bg-warning text-dark badge-pill">Catégorie</span>
                     </div>
                     <p class="text-muted-strong mb-4">@(!string.IsNullOrWhiteSpace(cat.Description) ? cat.Description : "Une sélection gourmande")</p>
-                    <button class="btn btn-outline-primary mt-auto" @onclick="(() => Nav.NavigateTo($"/articles/{cat.CategoryId}"))">Voir les articles</button>
+                    <button class="btn btn-outline-primary mt-auto" @onclick='() => Nav.NavigateTo($"/articles/{cat.CategoryId}")'>Voir les articles</button>
                 </div>
             </div>
         }
@@ -154,8 +154,8 @@ else
                     <strong>@_cartItems.Sum(i => i.Price * i.Quantity) €</strong>
                 </div>
                 <div class="d-flex gap-2 mt-3">
-                    <button class="btn btn-light flex-fill" @onclick="(() => Nav.NavigateTo("/cart"))">Ajuster</button>
-                    <button class="btn btn-warning text-dark flex-fill" @onclick="(() => Nav.NavigateTo("/orders"))">Commander</button>
+                    <button class="btn btn-light flex-fill" @onclick='() => Nav.NavigateTo("/cart")'>Ajuster</button>
+                    <button class="btn btn-warning text-dark flex-fill" @onclick='() => Nav.NavigateTo("/orders")'>Commander</button>
                 </div>
             }
         </div>
