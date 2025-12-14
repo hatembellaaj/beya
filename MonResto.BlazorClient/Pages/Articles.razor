@@ -8,7 +8,7 @@
         <h3 class="mb-0">Articles</h3>
         <p class="text-muted mb-0">@(_subtitle ?? "Sélectionnez un plat et ajoutez-le à votre panier.")</p>
     </div>
-    <button class="btn btn-outline-secondary" @onclick="(() => Nav.NavigateTo("/cart"))">Voir mon panier</button>
+    <button class="btn btn-outline-secondary" @onclick='() => Nav.NavigateTo("/cart")'>Voir mon panier</button>
 </div>
 
 @if (_articles is null)
@@ -33,7 +33,7 @@ else
                     <p class="text-muted-strong mb-3">@article.Description</p>
                     <div class="d-flex align-items-center justify-content-between mt-auto">
                         <span class="chip">@article.CategoryName</span>
-                        <button class="btn btn-outline-primary" @onclick="@(() => Nav.NavigateTo($"/article/{article.ArticleId}"))">Détails</button>
+                        <button class="btn btn-outline-primary" @onclick='() => Nav.NavigateTo($"/article/{article.ArticleId}")'>Détails</button>
                     </div>
                 </div>
             </div>
