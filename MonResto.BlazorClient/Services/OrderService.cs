@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using MonResto.BlazorClient.Models;
+using System.Net;
 
 namespace MonResto.BlazorClient.Services;
 
@@ -12,7 +13,14 @@ public class OrderService : ApiServiceBase
     public async Task<IEnumerable<OrderModel>> GetOrders()
     {
         ApplyToken();
-        return await Http.GetFromJsonAsync<IEnumerable<OrderModel>>("api/order") ?? Enumerable.Empty<OrderModel>();
+        var response = await Http.GetAsync("api/order");
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
+        {
+            return Enumerable.Empty<OrderModel>();
+        }
+
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<IEnumerable<OrderModel>>() ?? Enumerable.Empty<OrderModel>();
     }
 
     public async Task CreateOrder()

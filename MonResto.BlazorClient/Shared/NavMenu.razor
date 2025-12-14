@@ -1,3 +1,5 @@
+@inject AuthService AuthService
+
 <nav class="navbar navbar-expand-lg navbar-dark navbar-monresto shadow-sm mb-4">
     <div class="container">
         <a class="navbar-brand fw-bold" href="/">🍽️ MonResto</a>
@@ -6,12 +8,29 @@
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="mainNav">
-            <div class="navbar-nav ms-auto">
+            <div class="navbar-nav me-auto">
                 <a class="nav-link" href="/articles">Articles</a>
                 <a class="nav-link" href="/cart">Panier</a>
                 <a class="nav-link" href="/orders">Commandes</a>
-                <a class="nav-link" href="/auth">Login/Register</a>
+            </div>
+            <div class="d-flex align-items-center">
+                <AuthorizeView>
+                    <Authorized Context="context">
+                        <span class="navbar-text me-3">Bienvenue @context.User.Identity?.Name</span>
+                        <button class="btn btn-outline-light btn-sm" @onclick="Logout">Déconnexion</button>
+                    </Authorized>
+                    <NotAuthorized>
+                        <a class="nav-link" href="/auth">Login/Register</a>
+                    </NotAuthorized>
+                </AuthorizeView>
             </div>
         </div>
     </div>
 </nav>
+
+@code {
+    private void Logout()
+    {
+        AuthService.Logout();
+    }
+}

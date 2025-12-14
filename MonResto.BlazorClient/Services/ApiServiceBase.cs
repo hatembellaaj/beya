@@ -21,5 +21,9 @@ public abstract class ApiServiceBase
         {
             Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _authStateProvider.Token);
         }
+        else
+        {
+            Http.DefaultRequestHeaders.Authorization = null;
+        }
     }
 }
