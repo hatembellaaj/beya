@@ -14,7 +14,7 @@ else
     <ul>
         @foreach (var cat in _categories)
         {
-            <li><a href=$"/articles/{cat.CategoryId}">@cat.Name</a> - @cat.Description</li>
+            <li><a href="@($"/articles/{cat.CategoryId}")">@cat.Name</a> - @cat.Description</li>
         }
     </ul>
 }
@@ -25,7 +25,7 @@ else
     <ul>
         @foreach (var article in _popular)
         {
-            <li><a href=$"/article/{article.ArticleId}">@article.Name</a> - @article.Price €</li>
+            <li><a href="@($"/article/{article.ArticleId}")">@article.Name</a> - @article.Price €</li>
         }
     </ul>
 }
