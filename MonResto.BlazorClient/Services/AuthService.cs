@@ -1,7 +1,6 @@
 using System.Net.Http.Json;
 using System.Linq;
 using MonResto.BlazorClient.Models;
-using Microsoft.AspNetCore.Identity;
 
 namespace MonResto.BlazorClient.Services;
 
@@ -24,7 +23,7 @@ public class AuthService
             return (true, null);
         }
 
-        var errors = await response.Content.ReadFromJsonAsync<IEnumerable<IdentityError>>();
+        var errors = await response.Content.ReadFromJsonAsync<IEnumerable<IdentityErrorModel>>();
         var message = errors is null
             ? "Echec de l'inscription."
             : string.Join("; ", errors.Select(e => e.Description));
