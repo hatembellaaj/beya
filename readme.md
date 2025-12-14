@@ -32,6 +32,109 @@ MonResto.sln
 - Services `HttpClient` pour categories, articles, panier, commandes, authentification (gestion token + `Authorization` header).
 - Pages : accueil (catégories + menus), liste d’articles par catégorie, détail d’un article (ajout au panier), panier (édition/suppression), commande, historique, login/register.
 
+## 🧱 Vue d’ensemble de l’architecture
+- **Couche Domain** : modèle métier (entités + DTOs) et interfaces de repository. Aucun accès aux frameworks.
+- **Couche Data** : implémentations EF Core, configuration du schéma relationnel (PostgreSQL) et semences de données.
+- **Couche WebAPI** : exposition des use cases via des controllers REST, mapping AutoMapper, configuration JWT/Identity, Swagger.
+- **Couche Blazor** : client WebAssembly qui consomme l’API via `HttpClient`, stocke le JWT et gère l’état d’authentification.
+- **Communication** : HTTP/JSON uniquement. Le front appelle l’API via des services dédiés (`CategoryService`, `ArticleService`, `CartService`, `OrderService`, `AuthService`) et transmet le JWT dans l’en-tête `Authorization: Bearer <token>`.
+
+## 🔄 Flux front ↔ back
+1. **Authentification** :
+   - Blazor appelle `POST /api/account/register` ou `POST /api/account/login` via `AuthService`. En cas de succès, le JWT est mémorisé par `AuthStateProvider` et injecté dans tous les appels suivants.
+2. **Catalogue** :
+   - `CategoryService` et `ArticleService` consomment `GET /api/categories`, `GET /api/articles`, `GET /api/articles?categoryId=...` pour construire les pages de navigation et de recherche.
+3. **Panier** :
+   - `CartService` envoie `POST /api/cart` pour ajouter, `PUT /api/cart/{id}` pour modifier, `DELETE /api/cart/{id}` pour retirer, et `GET /api/cart/summary` pour le total. Les appels sont protégés par JWT.
+4. **Commande** :
+   - `OrderService` poste `POST /api/order` en reprenant les lignes du panier, puis consulte l’historique via `GET /api/order` et le détail via `GET /api/order/{id}`. Le back calcule le total et crée les `OrderItem`.
+5. **Administration** :
+   - Les comptes ayant le rôle `Admin` utilisent `PATCH /api/order/{id}/status` pour mettre à jour le statut (par exemple `Paid` ou `Delivered`).
+
+## 📜 Swagger et catalogue des web services
+- Swagger est activé en développement et accessible sur `https://localhost:5001/swagger` (ou `http://localhost:5000/swagger`).
+- Cliquez sur **Authorize** et collez `Bearer <token>` pour tester les routes protégées.
+- Le document JSON est disponible sur `/swagger/v1/swagger.json` et peut être importé dans Postman/Bruno.
+
+### Principaux endpoints
+- **Authentification** (`AccountController`)
+  - `POST /api/account/register` : crée un utilisateur Identity et retourne 200 OK ou les erreurs de validation.
+  - `POST /api/account/login` : vérifie les identifiants et renvoie `{ userName, token, expires }`.
+- **Catégories** (`CategoriesController`)
+  - `GET /api/categories` : liste l’ensemble des catégories.
+  - `POST /api/categories` (authentifié) : crée une catégorie.
+  - `PUT /api/categories/{id}` / `DELETE /api/categories/{id}` : met à jour ou supprime.
+- **Articles** (`ArticlesController`)
+  - `GET /api/articles` : liste, filtrable par `categoryId` ou `name` (query string).
+  - `GET /api/articles/{id}` : récupère un article.
+  - `POST /api/articles`, `PUT /api/articles/{id}`, `DELETE /api/articles/{id}` : gestion du catalogue.
+- **Menus** (`MenuController`)
+  - `GET /api/menu` et `GET /api/menu/{id}` : consulter les menus et leurs articles.
+  - `POST /api/menu` : créer un menu, `POST /api/menu/{menuId}/articles/{articleId}` : ajouter un article, `DELETE /api/menu/{menuId}/articles/{articleId}` : retirer.
+- **Panier** (`CartController`, protégé JWT)
+  - `GET /api/cart` : panier courant.
+  - `GET /api/cart/summary` : quantités + total.
+  - `POST /api/cart` : ajoute ou incrémente une ligne.
+  - `PUT /api/cart/{cartItemId}` : modifie la quantité.
+  - `DELETE /api/cart/{cartItemId}` : supprime la ligne.
+- **Commandes** (`OrderController`, protégé JWT)
+  - `GET /api/order` : historique de l’utilisateur connecté.
+  - `GET /api/order/{id}` : détail d’une commande.
+  - `POST /api/order` : transforme le panier en commande en calculant `TotalPrice`.
+  - `PATCH /api/order/{id}/status` : réservé aux admins pour passer l’état à `Paid` ou `Delivered`.
+
+## 🧪 Scénario de test de bout en bout
+1. **Inscription** : appeler `POST /api/account/register` avec `{ "userName": "alice", "email": "alice@example.com", "password": "Passw0rd!" }` via Swagger.
+2. **Connexion** : `POST /api/account/login` avec les identifiants. Copier le `token` et l’injecter dans Swagger via **Authorize**.
+3. **Remplir le catalogue** (si vide) : créer une catégorie (`POST /api/categories`), puis des articles (`POST /api/articles`).
+4. **Constituer le panier** :
+   - `POST /api/cart` pour ajouter un article (ex. `{ "articleId": 1, "quantity": 2 }`).
+   - `GET /api/cart/summary` pour vérifier totaux et quantités.
+5. **Passer commande** : `POST /api/order` sans corps supplémentaire (le back récupère le panier de l’utilisateur).
+6. **Suivre la commande** :
+   - Utilisateur : `GET /api/order` pour l’historique, `GET /api/order/{id}` pour le détail.
+   - Admin : `PATCH /api/order/{id}/status` avec `{ "status": "Paid" }` puis `{ "status": "Delivered" }`.
+7. **Nettoyage** : `DELETE /api/cart/{cartItemId}` si besoin pour repartir de zéro.
+
+## 👥 Rôles et autorisations
+- **Utilisateur authentifié** : accès aux endpoints panier (`/api/cart`) et commandes (`/api/order`), création de contenu personnel (panier, commandes). Ne peut pas modifier le statut d’une commande autre que via son propre flux de création.
+- **Administrateur (`Admin`)** : dispose des mêmes droits qu’un utilisateur, plus la capacité de mettre à jour le statut d’une commande via `PATCH /api/order/{id}/status`. Le rôle est créé au démarrage et assigné à l’utilisateur `admin@monresto.com`.
+- Les rôles sont stockés via ASP.NET Core Identity et les claims sont inclus dans le JWT ; le middleware `UseAuthorization()` s’appuie sur ces rôles pour filtrer les endpoints protégés.
+
+## 🗃️ Schéma relationnel (simplifié)
+```
+Users (Identity)
+Roles (Identity)
+└─ UserRoles (UserId ↔ RoleId)
+
+Categories (CategoryId PK)
+└─ Articles (ArticleId PK, FK CategoryId) --< CartItems (CartItemId PK, FK ArticleId, UserId)
+                  └─< OrderItems (OrderItemId PK, FK ArticleId, OrderId)
+
+Menus (MenuId PK)
+└─ MenuArticles (PK {MenuId, ArticleId}, FK vers Menus et Articles)
+
+Orders (OrderId PK, UserId, TotalPrice, Status)
+└─ OrderItems (OrderId FK, ArticleId FK, Quantity, UnitPrice)
+```
+- Les relations clés sont configurées dans `AppDbContext` : many-to-many `Menu`–`Article` via `MenuArticle`, one-to-many `Category`→`Article`, `Order`→`OrderItem`, et les entités Identity pour les utilisateurs et rôles.
+
+## 📚 Glossaire (mots-clés techniques)
+- **API REST** : interface HTTP qui expose des ressources (catégories, articles, panier, commandes) via des méthodes standard.
+- **JWT (JSON Web Token)** : jeton signé inclus dans l’en-tête `Authorization` pour authentifier l’utilisateur sur les routes protégées.
+- **Backend** : l’API ASP.NET Core (`MonResto.WebAPI`) qui traite les requêtes, applique les règles métier et dialogue avec la base PostgreSQL via EF Core.
+- **Frontend** : le client Blazor WebAssembly (`MonResto.BlazorClient`) qui s’exécute dans le navigateur et appelle l’API.
+- **Port** : l’API écoute par défaut sur 5000 (HTTP) / 5001 (HTTPS) en développement ; le client Blazor tourne sur 5002/5003 selon le profil de lancement.
+- **Repository** : pattern de persistance implémenté dans `MonResto.Data.Repositories` pour isoler EF Core du reste de l’application.
+- **DbContext** : `AppDbContext` gère le mapping entités ↔ tables et les transactions.
+- **Swagger/OpenAPI** : documentation interactive générée pour tester les web services.
+- **Identity** : module ASP.NET Core pour gérer utilisateurs, rôles, hachage des mots de passe et émission des claims présents dans le JWT.
+
+## 🔎 Si vous voulez aller plus loin
+- Ajouter des tests d’intégration autour des controllers (xUnit) en utilisant `WebApplicationFactory`.
+- Étendre le modèle (options de livraison, photos d’articles) en ajoutant les entités dans `MonResto.Domain/Entities` et en mettant à jour `AppDbContext` + migrations.
+- Mettre en place un pipeline CI/CD qui exécute `dotnet restore`, `dotnet build` et des tests automatisés avant chaque déploiement.
+
 ## 🧰 Prérequis
 - .NET 7 SDK ou supérieur installé.
 - PostgreSQL accessible (local ou conteneur). Créez une base de données (ex: `monresto`).
