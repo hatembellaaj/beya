@@ -1,11 +1,21 @@
 @page "/orders"
 @inject OrderService OrderService
+@inject NavigationManager Nav
+@attribute [Authorize]
 
 <h3>Historique des commandes</h3>
 
-@if (_orders is null)
+@if (_isLoading)
 {
     <p>Chargement...</p>
+}
+else if (_requiresLogin)
+{
+    <div class="alert alert-warning">Veuillez vous connecter pour consulter vos commandes.</div>
+}
+else if (_orders is null)
+{
+    <p>Une erreur est survenue lors du chargement des commandes.</p>
 }
 else if (!_orders.Any())
 {
@@ -16,7 +26,7 @@ else
     foreach (var order in _orders)
     {
         <div class="card mb-3 p-3">
-            <h5>Commande #@order.OrderId - @order.Status</h5>
+            <h5>Commande #@order.OrderId - @FormatStatus(order.Status)</h5>
             <p>Date : @order.OrderDate.ToLocalTime()</p>
             <ul>
                 @foreach (var item in order.Items)
@@ -31,9 +41,33 @@ else
 
 @code {
     private IEnumerable<MonResto.BlazorClient.Models.OrderModel>? _orders;
+    private bool _requiresLogin;
+    private bool _isLoading = true;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthenticationStateTask;
+        var user = authState.User;
+        if (user?.Identity?.IsAuthenticated is not true)
+        {
+            _requiresLogin = true;
+            _isLoading = false;
+            Nav.NavigateTo("/auth", true);
+            return;
+        }
+
         _orders = await OrderService.GetOrders();
+        _isLoading = false;
     }
+
+    private string FormatStatus(OrderStatus status) => status switch
+    {
+        OrderStatus.Pending => "En attente",
+        OrderStatus.Paid => "Payée",
+        OrderStatus.Delivered => "Livrée",
+        _ => status.ToString()
+    };
 }
