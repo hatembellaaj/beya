@@ -10,6 +10,11 @@
     <a class="btn btn-outline-secondary" href="/articles">Continuer mes achats</a>
 </div>
 
+@if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <div class="alert alert-warning">@_errorMessage</div>
+}
+
 @if (_items is null)
 {
     <div class="alert alert-info">Chargement du panier...</div>
@@ -32,12 +37,12 @@ else
                         <tr>
                             <td>
                                 <div class="fw-bold">@item.ArticleName</div>
-                                <div class="text-muted">@item.Price € / unité</div>
+                                <div class="text-muted">@item.Price DT / unité</div>
                             </td>
                             <td>
                                 <input class="form-control" type="number" min="1" value="@item.Quantity" @onchange="e => Update(item, e.Value?.ToString())" />
                             </td>
-                            <td class="fw-bold">@(item.Price * item.Quantity) €</td>
+                            <td class="fw-bold">@(item.Price * item.Quantity) DT</td>
                             <td class="text-end">
                                 <button class="btn btn-outline-danger" @onclick="(() => Remove(item.CartItemId))">Supprimer</button>
                             </td>
@@ -48,7 +53,7 @@ else
         </div>
     </div>
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-        <div class="fs-5"><strong>Total :</strong> @_items.Sum(i => i.Price * i.Quantity) €</div>
+        <div class="fs-5"><strong>Total :</strong> @_items.Sum(i => i.Price * i.Quantity) DT</div>
         <div class="d-flex gap-2">
             <a class="btn btn-light" href="/articles">Ajouter d'autres articles</a>
             <button class="btn btn-primary" @onclick="CreateOrder">Passer commande</button>
@@ -58,10 +63,11 @@ else
 
 @code {
     private List<MonResto.BlazorClient.Models.CartItemModel>? _items;
+    private string? _errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
-        _items = (await CartService.GetCart()).ToList();
+        await LoadCart();
     }
 
     private async Task Update(MonResto.BlazorClient.Models.CartItemModel item, string? value)
@@ -69,19 +75,26 @@ else
         if (int.TryParse(value, out var qty))
         {
             await CartService.UpdateQuantity(item.CartItemId, qty);
-            _items = (await CartService.GetCart()).ToList();
+            await LoadCart();
         }
     }
 
     private async Task Remove(int cartItemId)
     {
         await CartService.Remove(cartItemId);
-        _items = (await CartService.GetCart()).ToList();
+        await LoadCart();
     }
 
     private async Task CreateOrder()
     {
         await OrderService.CreateOrder();
-        _items = (await CartService.GetCart()).ToList();
+        await LoadCart();
+    }
+
+    private async Task LoadCart()
+    {
+        var result = await CartService.GetCart();
+        _errorMessage = result.Error;
+        _items = result.Items.ToList();
     }
 }

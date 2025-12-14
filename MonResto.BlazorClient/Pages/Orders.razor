@@ -21,10 +21,10 @@ else
             <ul>
                 @foreach (var item in order.Items)
                 {
-                    <li>@item.ArticleName x @item.Quantity (@item.UnitPrice €)</li>
+                    <li>@item.ArticleName x @item.Quantity (@item.UnitPrice DT)</li>
                 }
             </ul>
-            <strong>Total : @order.TotalPrice €</strong>
+            <strong>Total : @order.TotalPrice DT</strong>
         </div>
     }
 }
