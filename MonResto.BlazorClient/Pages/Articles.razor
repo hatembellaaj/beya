@@ -3,23 +3,38 @@
 @inject ArticleService ArticleService
 @inject NavigationManager Nav
 
-<h3>Articles</h3>
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+    <div>
+        <h3 class="mb-0">Articles</h3>
+        <p class="text-muted mb-0">@(_subtitle ?? "Sélectionnez un plat et ajoutez-le à votre panier.")</p>
+    </div>
+    <button class="btn btn-outline-secondary" @onclick="(() => Nav.NavigateTo("/cart"))">Voir mon panier</button>
+</div>
 
 @if (_articles is null)
 {
-    <p>Chargement...</p>
+    <div class="alert alert-info">Chargement des articles...</div>
+}
+else if (!_articles.Any())
+{
+    <div class="alert alert-warning">Aucun article disponible pour cette catégorie.</div>
 }
 else
 {
-    <div class="row">
+    <div class="row g-3">
         @foreach (var article in _articles)
         {
-            <div class="col-4 mb-3">
-                <div class="card p-3">
-                    <h5>@article.Name</h5>
-                    <p>@article.Description</p>
-                    <strong>@article.Price €</strong>
-                    <button class="btn btn-primary mt-2" @onclick="@(() => Nav.NavigateTo($"/article/{article.ArticleId}"))">Voir</button>
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card card-tile h-100 p-3 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="mb-0">@article.Name</h5>
+                        <span class="badge bg-primary">@article.Price €</span>
+                    </div>
+                    <p class="text-muted-strong mb-3">@article.Description</p>
+                    <div class="d-flex align-items-center justify-content-between mt-auto">
+                        <span class="chip">@article.CategoryName</span>
+                        <button class="btn btn-outline-primary" @onclick="@(() => Nav.NavigateTo($"/article/{article.ArticleId}"))">Détails</button>
+                    </div>
                 </div>
             </div>
         }
@@ -29,11 +44,16 @@ else
 @code {
     [Parameter] public int? CategoryId { get; set; }
     private IEnumerable<MonResto.BlazorClient.Models.ArticleModel>? _articles;
+    private string? _subtitle;
 
     protected override async Task OnParametersSetAsync()
     {
         _articles = CategoryId.HasValue
             ? await ArticleService.GetByCategory(CategoryId.Value)
             : await ArticleService.GetArticles();
+
+        _subtitle = CategoryId.HasValue
+            ? $"Articles de la catégorie #{CategoryId.Value}"
+            : "Tous les plats disponibles";
     }
 }
