@@ -2,36 +2,58 @@
 @inject CartService CartService
 @inject OrderService OrderService
 
-<h3>Panier</h3>
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+    <div>
+        <h3 class="mb-0">Mon panier</h3>
+        <p class="text-muted mb-0">Ajustez vos quantités avant de confirmer la commande.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="/articles">Continuer mes achats</a>
+</div>
 
 @if (_items is null)
 {
-    <p>Chargement...</p>
+    <div class="alert alert-info">Chargement du panier...</div>
 }
 else if (!_items.Any())
 {
-    <p>Votre panier est vide.</p>
+    <div class="alert alert-warning">Votre panier est vide. Ajoutez des articles pour commencer.</div>
 }
 else
 {
-    <table class="table">
-        <thead>
-            <tr><th>Article</th><th>Quantité</th><th>Prix</th><th></th></tr>
-        </thead>
-        <tbody>
-            @foreach (var item in _items)
-            {
-                <tr>
-                    <td>@item.ArticleName</td>
-                    <td><input type="number" min="1" value="@item.Quantity" @onchange="e => Update(item, e.Value?.ToString())" /></td>
-                    <td>@(item.Price * item.Quantity) €</td>
-                    <td><button class="btn btn-danger" @onclick="(() => Remove(item.CartItemId))">Supprimer</button></td>
-                </tr>
-            }
-        </tbody>
-    </table>
-    <p><strong>Total : @_items.Sum(i => i.Price * i.Quantity) €</strong></p>
-    <button class="btn btn-primary" @onclick="CreateOrder">Passer commande</button>
+    <div class="card card-tile p-3 mb-3">
+        <div class="table-responsive">
+            <table class="table table-modern align-middle mb-0">
+                <thead>
+                    <tr><th>Article</th><th style="width: 140px;">Quantité</th><th>Prix</th><th style="width: 120px;"></th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in _items)
+                    {
+                        <tr>
+                            <td>
+                                <div class="fw-bold">@item.ArticleName</div>
+                                <div class="text-muted">@item.Price € / unité</div>
+                            </td>
+                            <td>
+                                <input class="form-control" type="number" min="1" value="@item.Quantity" @onchange="e => Update(item, e.Value?.ToString())" />
+                            </td>
+                            <td class="fw-bold">@(item.Price * item.Quantity) €</td>
+                            <td class="text-end">
+                                <button class="btn btn-outline-danger" @onclick="(() => Remove(item.CartItemId))">Supprimer</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div class="fs-5"><strong>Total :</strong> @_items.Sum(i => i.Price * i.Quantity) €</div>
+        <div class="d-flex gap-2">
+            <a class="btn btn-light" href="/articles">Ajouter d'autres articles</a>
+            <button class="btn btn-primary" @onclick="CreateOrder">Passer commande</button>
+        </div>
+    </div>
 }
 
 @code {
