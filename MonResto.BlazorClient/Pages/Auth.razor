@@ -42,7 +42,9 @@
 
     private async Task Register()
     {
-        var ok = await AuthService.Register(_regUser, _regEmail, _regPassword);
-        _message = ok ? "Compte créé" : "Echec inscription";
+        var result = await AuthService.Register(_regUser, _regEmail, _regPassword);
+        _message = result.Success
+            ? "Compte créé"
+            : (string.IsNullOrWhiteSpace(result.Error) ? "Echec inscription" : result.Error);
     }
 }

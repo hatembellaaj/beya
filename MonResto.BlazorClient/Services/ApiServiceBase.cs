@@ -7,6 +7,8 @@ public abstract class ApiServiceBase
     protected readonly HttpClient Http;
     private readonly AuthStateProvider _authStateProvider;
 
+    protected bool IsAuthenticated => !string.IsNullOrWhiteSpace(_authStateProvider.Token);
+
     protected ApiServiceBase(HttpClient http, AuthStateProvider authStateProvider)
     {
         Http = http;
