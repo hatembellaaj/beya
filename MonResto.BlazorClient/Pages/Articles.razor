@@ -11,6 +11,13 @@
     <button class="btn btn-outline-secondary" @onclick='() => Nav.NavigateTo("/cart")'>Voir mon panier</button>
 </div>
 
+<div class="input-group mb-4">
+    <span class="input-group-text bg-white">🔍</span>
+    <input class="form-control" placeholder="Rechercher par nom, description ou catégorie"
+           @bind="SearchTerm" @bind:event="oninput" />
+    <button class="btn btn-outline-secondary" @onclick="ClearSearch" disabled="@string.IsNullOrWhiteSpace(_searchTerm)">Effacer</button>
+</div>
+
 @if (_articles is null)
 {
     <div class="alert alert-info">Chargement des articles...</div>
@@ -44,16 +51,57 @@ else
 @code {
     [Parameter] public int? CategoryId { get; set; }
     private IEnumerable<MonResto.BlazorClient.Models.ArticleModel>? _articles;
+    private IEnumerable<MonResto.BlazorClient.Models.ArticleModel>? _allArticles;
     private string? _subtitle;
+    private string _searchTerm = string.Empty;
+    private string SearchTerm
+    {
+        get => _searchTerm;
+        set
+        {
+            _searchTerm = value;
+            ApplyFilter();
+        }
+    }
 
     protected override async Task OnParametersSetAsync()
     {
-        _articles = CategoryId.HasValue
+        _allArticles = CategoryId.HasValue
             ? await ArticleService.GetByCategory(CategoryId.Value)
             : await ArticleService.GetArticles();
 
         _subtitle = CategoryId.HasValue
             ? $"Articles de la catégorie #{CategoryId.Value}"
             : "Tous les plats disponibles";
+
+        ApplyFilter();
+    }
+
+    private void ApplyFilter()
+    {
+        if (_allArticles is null)
+        {
+            _articles = null;
+            return;
+        }
+
+        var term = _searchTerm?.Trim();
+
+        if (string.IsNullOrWhiteSpace(term))
+        {
+            _articles = _allArticles;
+            return;
+        }
+
+        _articles = _allArticles.Where(article =>
+            (!string.IsNullOrWhiteSpace(article.Name) && article.Name.Contains(term, StringComparison.OrdinalIgnoreCase)) ||
+            (!string.IsNullOrWhiteSpace(article.Description) && article.Description.Contains(term, StringComparison.OrdinalIgnoreCase)) ||
+            (!string.IsNullOrWhiteSpace(article.CategoryName) && article.CategoryName.Contains(term, StringComparison.OrdinalIgnoreCase))
+        );
+    }
+
+    private void ClearSearch()
+    {
+        SearchTerm = string.Empty;
     }
 }
