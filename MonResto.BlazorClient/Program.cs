@@ -22,5 +22,6 @@ builder.Services.AddScoped<ArticleService>();
 builder.Services.AddScoped<CartService>();
 builder.Services.AddScoped<OrderService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<MenuService>();
 
 await builder.Build().RunAsync();

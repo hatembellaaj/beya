@@ -1,0 +1,87 @@
+@using System.Collections.Generic
+@page "/menus"
+@inject MenuService MenuService
+@inject NavigationManager Nav
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <div class="section-title mb-0"><span class="dot"></span><span>Menus</span></div>
+    <button class="btn btn-sm btn-outline-secondary" @onclick='() => Nav.NavigateTo("/articles")'>Voir tous les articles</button>
+</div>
+<p class="text-muted-strong mb-4">Découvrez nos menus prêts à déguster. Chaque menu rassemble une sélection d'articles pour faciliter votre choix.</p>
+
+@if (_isLoading)
+{
+    <div class="alert alert-info">Chargement des menus en cours...</div>
+}
+else if (!string.IsNullOrWhiteSpace(_error))
+{
+    <div class="alert alert-danger">@_error</div>
+}
+else if (_menus is null || !_menus.Any())
+{
+    <div class="alert alert-warning">Aucun menu disponible pour le moment.</div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var menu in _menus)
+        {
+            var articles = menu.Articles?.ToList() ?? new List<MonResto.BlazorClient.Models.ArticleModel>();
+            <div class="col-12 col-lg-6">
+                <div class="card card-tile h-100 p-3">
+                    <div class="d-flex align-items-start justify-content-between mb-2">
+                        <div>
+                            <h5 class="mb-1">@menu.Title</h5>
+                            <p class="text-muted-strong mb-0">@(!string.IsNullOrWhiteSpace(menu.Description) ? menu.Description : "Une sélection gourmande")</p>
+                        </div>
+                        <span class="badge bg-primary">@articles.Count @("article" + (articles.Count > 1 ? "s" : ""))</span>
+                    </div>
+                    @if (articles.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var article in articles)
+                            {
+                                <div class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <div class="fw-bold">@article.Name</div>
+                                        <div class="text-muted">@article.CategoryName</div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="fw-bold">@article.Price DT</div>
+                                        <a class="btn btn-link btn-sm px-0" href="@($"/article/{article.ArticleId}")">Voir</a>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-secondary mb-0">Aucun article associé pour ce menu.</div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private IEnumerable<MonResto.BlazorClient.Models.MenuModel>? _menus;
+    private bool _isLoading = true;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _menus = await MenuService.GetMenus();
+        }
+        catch
+        {
+            _error = "Impossible de récupérer les menus pour le moment.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+}
