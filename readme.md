@@ -124,30 +124,51 @@ Orders (OrderId PK, UserId, TotalPrice, Status)
 ```plantuml
 @startuml
 left to right direction
+actor "Visiteur" as Guest
 actor "Utilisateur" as User
 actor "Administrateur" as Admin
 
-usecase "S'inscrire / Se connecter" as UC1
-usecase "Consulter catégories, articles et menus" as UC2
-usecase "Gérer le panier" as UC3
-usecase "Passer une commande" as UC4
-usecase "Consulter l'historique de commandes" as UC5
-usecase "Gérer le catalogue (catégories, articles, menus)" as UC6
-usecase "Mettre à jour le statut d'une commande" as UC7
+usecase "Créer un compte" as UC_Register
+usecase "Se connecter (JWT)" as UC_Login
+usecase "Parcourir catégories et menus" as UC_Browse
+usecase "Rechercher / filtrer des articles" as UC_Search
+usecase "Consulter le détail d'un article" as UC_ArticleDetail
+usecase "Ajouter/Mettre à jour/Supprimer du panier" as UC_CartOps
+usecase "Voir le total du panier" as UC_CartSummary
+usecase "Passer une commande" as UC_Order
+usecase "Consulter l'historique et le détail" as UC_OrderHistory
+usecase "Suivre le statut (Pending/Paid/Delivered)" as UC_OrderStatus
+usecase "Gérer catégories et articles (CRUD)" as UC_AdminCatalog
+usecase "Gérer menus (création + association articles)" as UC_AdminMenu
+usecase "Mettre à jour le statut d'une commande" as UC_AdminOrder
 
-User --> UC1
-User --> UC2
-User --> UC3
-User --> UC4
-User --> UC5
-Admin --> UC6
-Admin --> UC7
+Guest --> UC_Register
+Guest --> UC_Login
+Guest --> UC_Browse
+Guest --> UC_Search
+Guest --> UC_ArticleDetail
+
+User --> UC_Browse
+User --> UC_Search
+User --> UC_ArticleDetail
+User --> UC_CartOps
+User --> UC_CartSummary
+User --> UC_Order
+User --> UC_OrderHistory
+User --> UC_OrderStatus
+
+Admin --> UC_AdminCatalog
+Admin --> UC_AdminMenu
+Admin --> UC_AdminOrder
+Admin --> UC_OrderStatus
 @enduml
 ```
 
 ### Diagramme de classes (Mermaid)
 ```mermaid
 classDiagram
+    direction LR
+
     class Category {
         int CategoryId
         string Name
@@ -196,6 +217,53 @@ classDiagram
         decimal UnitPrice
     }
 
+    class OrderStatus {
+        <<enum>>
+        Pending
+        Paid
+        Delivered
+    }
+
+    class ICategoryRepository {
+        +Task<IEnumerable<Category>> GetAll()
+        +Task<Category?> GetById(int id)
+        +Task Add(Category c)
+        +Task Update(Category c)
+        +Task Delete(int id)
+    }
+
+    class IArticleRepository {
+        +Task<IEnumerable<Article>> GetAll(...)
+        +Task<Article?> GetById(int id)
+        +Task Add(Article a)
+        +Task Update(Article a)
+        +Task Delete(int id)
+    }
+
+    class IMenuRepository {
+        +Task<IEnumerable<Menu>> GetAll()
+        +Task<Menu?> GetById(int id)
+        +Task Add(Menu m)
+        +Task AttachArticle(menuId, articleId)
+        +Task RemoveArticle(menuId, articleId)
+    }
+
+    class ICartRepository {
+        +Task<IEnumerable<CartItem>> GetCart(userId)
+        +Task<CartItem?> GetItem(userId, articleId)
+        +Task Add(CartItem item)
+        +Task Update(CartItem item)
+        +Task<bool> Delete(cartItemId)
+        +Task ClearCart(userId)
+    }
+
+    class IOrderRepository {
+        +Task Add(Order order)
+        +Task<Order?> GetById(int id)
+        +Task<IEnumerable<Order>> GetByUser(userId)
+        +Task<Order> UpdateStatus(orderId, status)
+    }
+
     Category "1" --> "*" Article
     Article "*" -- "*" Menu : via MenuArticle
     Menu "1" --> "*" MenuArticle
@@ -203,6 +271,13 @@ classDiagram
     Article "1" --> "*" CartItem
     Order "1" --> "*" OrderItem
     Article "1" --> "*" OrderItem
+    Order --> OrderStatus
+
+    ICategoryRepository <|.. Category
+    IArticleRepository <|.. Article
+    IMenuRepository <|.. Menu
+    ICartRepository <|.. CartItem
+    IOrderRepository <|.. Order
 ```
 
 ### Diagramme de séquence (Mermaid)
@@ -214,21 +289,35 @@ sequenceDiagram
     participant CartRepo as CartRepository
     participant ArticleRepo as ArticleRepository
     participant OrderRepo as OrderRepository
+    participant Auth as JWT/Identity
 
     Utilisateur->>Blazor: Clique sur "Passer commande"
-    Blazor->>API: POST /api/order (JWT)
+    Blazor->>API: POST /api/order (Authorization: Bearer)
+    API->>Auth: Valide le JWT
+    Auth-->>API: Claims utilisateur (Name/Role)
+
     API->>CartRepo: GetCart(userId)
-    CartRepo-->>API: CartItems + Articles associés
-    loop Pour chaque ligne du panier
-        API->>ArticleRepo: GetById(articleId) si l'article n'est pas chargé
-        ArticleRepo-->>API: Article
-        API->>API: Calcule UnitPrice, ajoute OrderItem
+    CartRepo-->>API: CartItems (+ Article chargés si possible)
+
+    alt panier vide
+        API-->>Blazor: 400 BadRequest "Panier vide"
+        return
     end
-    API->>API: Calcule TotalPrice
-    API->>OrderRepo: Add(order)
-    API->>CartRepo: ClearCart(userId)
+
+    loop Pour chaque CartItem
+        alt Article non chargé
+            API->>ArticleRepo: GetById(articleId)
+            ArticleRepo-->>API: Article
+        end
+        API->>API: Vérifie quantité > 0, copie UnitPrice, construit OrderItem
+    end
+
+    API->>API: Calcule TotalPrice, statut = Pending, date UTC
+    API->>OrderRepo: Add(order + items)
     OrderRepo-->>API: OrderId généré
-    API-->>Blazor: 201 Created (OrderDto)
+    API->>CartRepo: ClearCart(userId)
+    API-->>Blazor: 201 Created (OrderDto avec items + total)
+    Blazor-->>Utilisateur: Affiche récapitulatif commande
 ```
 
 ## 📚 Glossaire (mots-clés techniques)
