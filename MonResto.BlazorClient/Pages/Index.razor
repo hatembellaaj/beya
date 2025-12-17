@@ -38,23 +38,38 @@ else
 {
     <div class="d-flex align-items-center justify-content-between mb-3">
         <div class="section-title"><span class="dot"></span><span>Catégories</span></div>
-        <a class="btn btn-sm btn-outline-secondary" href="/articles">Toutes les catégories</a>
-    </div>
-    <div class="row g-3 mb-4">
-        @foreach (var cat in _categories)
-        {
-            <div class="col-12 col-md-6 col-lg-4">
-                <div class="card card-tile h-100 p-3 d-flex flex-column">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <h5 class="mb-0">@cat.Name</h5>
-                        <span class="badge bg-warning text-dark badge-pill">Catégorie</span>
-                    </div>
-                    <p class="text-muted-strong mb-4">@(!string.IsNullOrWhiteSpace(cat.Description) ? cat.Description : "Une sélection gourmande")</p>
-                    <button class="btn btn-outline-primary mt-auto" @onclick='() => Nav.NavigateTo($"/articles/{cat.CategoryId}")'>Voir les articles</button>
-                </div>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <div class="input-group input-group-sm" style="min-width: 240px;">
+                <span class="input-group-text bg-white">🔍</span>
+                <input class="form-control" placeholder="Rechercher une catégorie"
+                       @bind="CategorySearchTerm" @bind:event="oninput" />
+                <button class="btn btn-outline-secondary" @onclick="ClearCategorySearch" disabled="@string.IsNullOrWhiteSpace(_categorySearchTerm)">Effacer</button>
             </div>
-        }
+            <a class="btn btn-sm btn-outline-secondary" href="/articles">Toutes les catégories</a>
+        </div>
     </div>
+    @if (_filteredCategories is not null && !_filteredCategories.Any())
+    {
+        <div class="alert alert-warning">Aucune catégorie ne correspond à votre recherche.</div>
+    }
+    else
+    {
+        <div class="row g-3 mb-4">
+            @foreach (var cat in _filteredCategories ?? Enumerable.Empty<MonResto.BlazorClient.Models.CategoryModel>())
+            {
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="card card-tile h-100 p-3 d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="mb-0">@cat.Name</h5>
+                            <span class="badge bg-warning text-dark badge-pill">Catégorie</span>
+                        </div>
+                        <p class="text-muted-strong mb-4">@(!string.IsNullOrWhiteSpace(cat.Description) ? cat.Description : "Une sélection gourmande")</p>
+                        <button class="btn btn-outline-primary mt-auto" @onclick='() => Nav.NavigateTo($"/articles/{cat.CategoryId}")'>Voir les articles</button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
 }
 
 @if (_popular is not null)
@@ -164,16 +179,54 @@ else
 
 @code {
     private IEnumerable<MonResto.BlazorClient.Models.CategoryModel>? _categories;
+    private IEnumerable<MonResto.BlazorClient.Models.CategoryModel>? _filteredCategories;
     private IEnumerable<MonResto.BlazorClient.Models.ArticleModel>? _popular;
     private List<MonResto.BlazorClient.Models.CartItemModel>? _cartItems;
     private string? _cartMessage;
+    private string _categorySearchTerm = string.Empty;
+    private string CategorySearchTerm
+    {
+        get => _categorySearchTerm;
+        set
+        {
+            _categorySearchTerm = value;
+            ApplyCategoryFilter();
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
         _categories = await CategoryService.GetCategories();
+        _filteredCategories = _categories;
         _popular = (await ArticleService.GetArticles()).Take(5);
         var cart = await CartService.GetCart();
         _cartMessage = cart.Error;
         _cartItems = cart.Items.ToList();
+    }
+
+    private void ApplyCategoryFilter()
+    {
+        if (_categories is null)
+        {
+            _filteredCategories = null;
+            return;
+        }
+
+        var term = _categorySearchTerm?.Trim();
+        if (string.IsNullOrWhiteSpace(term))
+        {
+            _filteredCategories = _categories;
+            return;
+        }
+
+        _filteredCategories = _categories.Where(category =>
+            (!string.IsNullOrWhiteSpace(category.Name) && category.Name.Contains(term, StringComparison.OrdinalIgnoreCase)) ||
+            (!string.IsNullOrWhiteSpace(category.Description) && category.Description.Contains(term, StringComparison.OrdinalIgnoreCase))
+        );
+    }
+
+    private void ClearCategorySearch()
+    {
+        CategorySearchTerm = string.Empty;
     }
 }
