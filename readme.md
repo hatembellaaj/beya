@@ -2,6 +2,27 @@
 
 MonResto est une solution .NET complète qui propose une API REST sécurisée et un client Blazor WebAssembly pour gérer un catalogue de restauration (catégories, articles, menus), un panier et des commandes. L’architecture suit les bonnes pratiques Clean Architecture avec séparation des responsabilités, mapping DTO/entités, et authentification JWT via ASP.NET Core Identity.
 
+## 📑 Rapport attendu
+Pour accompagner le projet, produisez un rapport structuré qui couvre **le fond (ce que vous avez conçu)** et **la forme (preuves visuelles)**. Le rapport est noté : soignez la clarté et la cohérence.
+
+### Contenu minimal à fournir
+- **Introduction** : présentez le contexte et les objectifs de MonResto (API REST + Blazor), les enjeux métier et techniques, et la portée fonctionnelle.
+- **Conception** : incluez au moins les diagrammes suivants, mis à jour pour votre implémentation :
+  - Diagramme de classes (entités principales, relations, agrégats, patterns).
+  - Diagrammes de cas d’utilisation (acteurs : utilisateur, admin ; parcours clés : catalogue, panier, commande, gestion des statuts).
+  - Diagrammes de séquence pour les parcours majeurs (ex. ajout au panier, passage de commande, mise à jour de statut admin).
+- **Captures d’écran** : montrez les écrans significatifs du client Blazor (navigation, détail article, panier, commande, authentification). Assurez-vous qu’elles reflètent les scénarios décrits.
+
+### Design patterns — justification attendue
+- Identifiez les design patterns utilisés (ex. Repository, DTO/Mapper, Separation of Concerns, éventuellement Unit of Work, State management côté client).
+- Expliquez, pour chaque pattern, **les avantages apportés** (maintenabilité, testabilité, découplage) et **leur utilité dans ce projet** (ex. Repository pour isoler EF Core, DTOs pour sécuriser l’exposition API, mapping pour limiter les fuites d’entités, etc.).
+- Reliez vos choix de patterns aux besoins fonctionnels (catalogue, panier, commandes, authentification) et aux contraintes techniques (API sécurisée, Blazor en WebAssembly).
+
+### Recommandations de forme
+- Structurez les sections avec des titres clairs, numérotez les figures (diagrammes, captures) et insérez des légendes explicites.
+- Vérifiez la cohérence entre diagrammes, code et captures d’écran (mêmes entités, mêmes rôles/acteurs).
+- Ajoutez, en conclusion, un court bilan sur les limites actuelles et des pistes d’amélioration (tests, scalabilité, UX).
+
 ## 📁 Architecture de la solution
 ```
 MonResto.sln
@@ -304,4 +325,3 @@ dotnet run      # Windows
 - **Controllers** : `MonResto.WebAPI/Controllers/*`
 - **Mappings** : `MonResto.WebAPI/Services/MappingProfile.cs`
 - **Blazor services/pages** : `MonResto.BlazorClient/Services/*`, `MonResto.BlazorClient/Pages/*`
-
