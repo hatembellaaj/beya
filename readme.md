@@ -301,7 +301,6 @@ sequenceDiagram
 
     alt panier vide
         API-->>Blazor: 400 BadRequest "Panier vide"
-        return
     end
 
     loop Pour chaque CartItem
