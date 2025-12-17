@@ -119,6 +119,118 @@ Orders (OrderId PK, UserId, TotalPrice, Status)
 ```
 - Les relations clés sont configurées dans `AppDbContext` : many-to-many `Menu`–`Article` via `MenuArticle`, one-to-many `Category`→`Article`, `Order`→`OrderItem`, et les entités Identity pour les utilisateurs et rôles.
 
+## 🎨 Diagrammes UML (PlantUML / Mermaid)
+### Cas d'utilisation (PlantUML)
+```plantuml
+@startuml
+left to right direction
+actor "Utilisateur" as User
+actor "Administrateur" as Admin
+
+usecase "S'inscrire / Se connecter" as UC1
+usecase "Consulter catégories, articles et menus" as UC2
+usecase "Gérer le panier" as UC3
+usecase "Passer une commande" as UC4
+usecase "Consulter l'historique de commandes" as UC5
+usecase "Gérer le catalogue (catégories, articles, menus)" as UC6
+usecase "Mettre à jour le statut d'une commande" as UC7
+
+User --> UC1
+User --> UC2
+User --> UC3
+User --> UC4
+User --> UC5
+Admin --> UC6
+Admin --> UC7
+@enduml
+```
+
+### Diagramme de classes (Mermaid)
+```mermaid
+classDiagram
+    class Category {
+        int CategoryId
+        string Name
+        string Description
+    }
+
+    class Article {
+        int ArticleId
+        string Name
+        string Description
+        decimal Price
+        int CategoryId
+    }
+
+    class Menu {
+        int MenuId
+        string Title
+        string Description
+    }
+
+    class MenuArticle {
+        int MenuId
+        int ArticleId
+    }
+
+    class CartItem {
+        int CartItemId
+        string UserId
+        int ArticleId
+        int Quantity
+    }
+
+    class Order {
+        int OrderId
+        string UserId
+        DateTime OrderDate
+        decimal TotalPrice
+        OrderStatus Status
+    }
+
+    class OrderItem {
+        int OrderItemId
+        int OrderId
+        int ArticleId
+        int Quantity
+        decimal UnitPrice
+    }
+
+    Category "1" --> "*" Article
+    Article "*" -- "*" Menu : via MenuArticle
+    Menu "1" --> "*" MenuArticle
+    Article "1" --> "*" MenuArticle
+    Article "1" --> "*" CartItem
+    Order "1" --> "*" OrderItem
+    Article "1" --> "*" OrderItem
+```
+
+### Diagramme de séquence (Mermaid)
+```mermaid
+sequenceDiagram
+    actor Utilisateur
+    participant Blazor as Client Blazor
+    participant API as OrderController
+    participant CartRepo as CartRepository
+    participant ArticleRepo as ArticleRepository
+    participant OrderRepo as OrderRepository
+
+    Utilisateur->>Blazor: Clique sur "Passer commande"
+    Blazor->>API: POST /api/order (JWT)
+    API->>CartRepo: GetCart(userId)
+    CartRepo-->>API: CartItems + Articles associés
+    loop Pour chaque ligne du panier
+        API->>ArticleRepo: GetById(articleId) si l'article n'est pas chargé
+        ArticleRepo-->>API: Article
+        API->>API: Calcule UnitPrice, ajoute OrderItem
+    end
+    API->>API: Calcule TotalPrice
+    API->>OrderRepo: Add(order)
+    API->>CartRepo: ClearCart(userId)
+    OrderRepo-->>API: OrderId généré
+    API-->>Blazor: 201 Created (OrderDto)
+```
+
 ## 📚 Glossaire (mots-clés techniques)
 - **API REST** : interface HTTP qui expose des ressources (catégories, articles, panier, commandes) via des méthodes standard.
 - **JWT (JSON Web Token)** : jeton signé inclus dans l’en-tête `Authorization` pour authentifier l’utilisateur sur les routes protégées.
@@ -304,4 +416,3 @@ dotnet run      # Windows
 - **Controllers** : `MonResto.WebAPI/Controllers/*`
 - **Mappings** : `MonResto.WebAPI/Services/MappingProfile.cs`
 - **Blazor services/pages** : `MonResto.BlazorClient/Services/*`, `MonResto.BlazorClient/Pages/*`
-
