@@ -1,5 +1,4 @@
 @page "/auth"
-@page "/login"
 @inject AuthService AuthService
 @inject NavigationManager Nav
 
@@ -8,9 +7,9 @@
 <div class="row">
     <div class="col-6">
         <h5>Login</h5>
-        <input class="form-control mb-2" placeholder="Utilisateur" data-testid="login-username" @bind="_loginUser" />
-        <input class="form-control mb-2" placeholder="Mot de passe" type="password" data-testid="login-password" @bind="_loginPassword" />
-        <button class="btn btn-primary" data-testid="login-submit" @onclick="Login">Se connecter</button>
+        <input class="form-control mb-2" placeholder="Utilisateur" @bind="_loginUser" />
+        <input class="form-control mb-2" placeholder="Mot de passe" type="password" @bind="_loginPassword" />
+        <button class="btn btn-primary" @onclick="Login">Se connecter</button>
     </div>
     <div class="col-6">
         <h5>Register</h5>
