@@ -466,6 +466,27 @@ dotnet run      # Windows
 
 ## 🧪 Tests
 - Des scénarios manuels sont disponibles via Swagger. Vous pouvez ajouter des tests d’intégration ou unitaires selon vos besoins (xUnit, NUnit…).
+- Le plan de test détaillé est disponible dans `docs/test-qualite-logiciel.md`.
+
+### ✅ Lancer les tests automatisés avec Docker
+Ces commandes supposent que l’API tourne déjà sur `http://localhost:5000` (ex: conteneur Docker exposé).
+
+#### Tests API (Pytest)
+```bash
+docker run --rm -v "$PWD:/workspace" -w /workspace --network=host python:3.11-slim \
+  bash -lc "pip install pytest requests && BASE_URL=http://localhost:5000 pytest tests/api"
+```
+
+#### Tests UI (Selenium + Chrome)
+> Prérequis : un container Selenium (Chrome) accessible et l’app Blazor en fonctionnement.
+```bash
+# 1) Lancer un conteneur Selenium (exemple)
+docker run -d --name selenium-chrome -p 4444:4444 -p 7900:7900 selenium/standalone-chrome:latest
+
+# 2) Exécuter les tests UI
+docker run --rm -v "$PWD:/workspace" -w /workspace --network=host python:3.11-slim \
+  bash -lc "pip install pytest selenium && UI_BASE_URL=http://localhost:5002 pytest tests/ui"
+```
 
 ### Tester le backend (API)
 1. **Lancer l’API** : assurez-vous que `MonResto.WebAPI` tourne (voir section "Mise en route").
