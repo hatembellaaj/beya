@@ -5,12 +5,12 @@ from .base_page import BasePage
 
 
 class LoginPage(BasePage):
-    USERNAME_INPUT = (By.CSS_SELECTOR, "[data-testid='login-username']")
-    PASSWORD_INPUT = (By.CSS_SELECTOR, "[data-testid='login-password']")
-    SUBMIT_BUTTON = (By.CSS_SELECTOR, "[data-testid='login-submit']")
+    USERNAME_INPUT = (By.CSS_SELECTOR, "input[placeholder='Utilisateur']")
+    PASSWORD_INPUT = (By.CSS_SELECTOR, "input[placeholder='Mot de passe']")
+    SUBMIT_BUTTON = (By.XPATH, "//button[normalize-space()='Se connecter']")
 
     def load(self):
-        self.open("/login")
+        self.open("/auth")
 
     def login(self, username: str, password: str):
         self.wait_for(EC.visibility_of_element_located(self.USERNAME_INPUT)).send_keys(username)
