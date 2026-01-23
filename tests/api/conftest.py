@@ -3,6 +3,7 @@ from urllib.parse import urlparse, urlunparse
 
 import pytest
 import requests
+import urllib3
 
 
 def _normalize_localhost_url(url: str) -> str:
@@ -17,6 +18,16 @@ def _base_url() -> str:
     return _normalize_localhost_url(url)
 
 
+def _ssl_verify_setting() -> bool | str:
+    raw_value = os.environ.get("API_SSL_VERIFY", os.environ.get("SSL_VERIFY", "true"))
+    value = raw_value.strip().lower()
+    if value in {"0", "false", "no"}:
+        return False
+    if value in {"1", "true", "yes"}:
+        return True
+    return raw_value
+
+
 @pytest.fixture(scope="session")
 def api_base_url() -> str:
     return _base_url()
@@ -25,6 +36,10 @@ def api_base_url() -> str:
 @pytest.fixture(scope="session")
 def api_session() -> requests.Session:
     session = requests.Session()
+    verify = _ssl_verify_setting()
+    session.verify = verify
+    if verify is False:
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     yield session
     session.close()
 

@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <title>MonResto - Lancer les tests</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 40px;
+        background-color: #f7f7f7;
+      }
+      .card {
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+      label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: bold;
+      }
+      input {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 12px;
+      }
+      button {
+        background: #0055cc;
+        color: #fff;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #003f99;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Lancer les tests</h1>
+
+    <div class="card">
+      <h2>Tests API</h2>
+      <form method="post" action="/run/api">
+        <label for="base_url">BASE_URL (ex: http://localhost:5000)</label>
+        <input id="base_url" name="base_url" type="text" placeholder="http://localhost:5000" />
+        <label>
+          <input type="checkbox" name="ssl_verify" value="false" />
+          Désactiver la vérification SSL (certificat auto-signé)
+        </label>
+        <button type="submit">Lancer les tests API</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Tests UI</h2>
+      <form method="post" action="/run/ui">
+        <label for="ui_base_url">UI_BASE_URL (ex: http://localhost:5002)</label>
+        <input id="ui_base_url" name="ui_base_url" type="text" placeholder="http://localhost:5002" />
+        <button type="submit">Lancer les tests UI</button>
+      </form>
+    </div>
+  </body>
+</html>
