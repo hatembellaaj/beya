@@ -19,8 +19,14 @@ def _base_url() -> str:
     return _normalize_localhost_url(url)
 
 
-def _ssl_verify_setting() -> bool | str:
-    raw_value = os.environ.get("API_SSL_VERIFY", os.environ.get("SSL_VERIFY", "true"))
+def _ssl_verify_setting(base_url: str | None = None) -> bool | str:
+    raw_value = os.environ.get("API_SSL_VERIFY") or os.environ.get("SSL_VERIFY")
+    if raw_value is None and base_url:
+        if base_url.startswith("https://localhost") or base_url.startswith("https://127.0.0.1"):
+            return False
+        return True
+    if raw_value is None:
+        return True
     value = raw_value.strip().lower()
     if value in {"0", "false", "no"}:
         return False
@@ -37,7 +43,7 @@ def api_base_url() -> str:
 @pytest.fixture(scope="session")
 def api_session() -> requests.Session:
     session = requests.Session()
-    verify = _ssl_verify_setting()
+    verify = _ssl_verify_setting(_base_url())
     session.verify = verify
     if verify is False:
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
