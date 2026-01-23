@@ -481,6 +481,7 @@ Ouvrez `http://localhost:5050`, puis renseignez `BASE_URL` (tests API) ou `UI_BA
 > L’interface lance les tests via `python -m pytest` pour éviter les erreurs « fichier introuvable » sous Windows.
 
 > Si l’API utilise un certificat auto-signé, cochez **Désactiver la vérification SSL** ou lancez les tests API avec `API_SSL_VERIFY=false`.
+> Assurez-vous que le backend est démarré et accessible sur `BASE_URL` avant de lancer les tests (sinon erreur de connexion).
 
 ### ✅ Lancer les tests automatisés avec des commandes directes
 Ces commandes supposent que l’API tourne déjà sur `http://localhost:5000`.

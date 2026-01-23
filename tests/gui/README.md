@@ -22,3 +22,4 @@ Ouvrez ensuite : `http://localhost:5050`.
 - Pour les tests API, renseignez `BASE_URL` (ex: `http://localhost:5000`).
 - Pour les tests UI, renseignez `UI_BASE_URL` (ex: `http://localhost:5002`).
 - Si l'API expose un certificat auto-signé, cochez **Désactiver la vérification SSL** ou définissez `API_SSL_VERIFY=false`.
+- Si le backend n'est pas démarré, les tests échoueront avec une erreur de connexion. Lancez l'API avant d'exécuter les tests.
