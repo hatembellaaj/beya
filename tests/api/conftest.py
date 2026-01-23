@@ -1,11 +1,20 @@
 import os
+from urllib.parse import urlparse, urlunparse
 
 import pytest
 import requests
 
 
+def _normalize_localhost_url(url: str) -> str:
+    parsed = urlparse(url)
+    if parsed.scheme == "https" and parsed.hostname in {"localhost", "127.0.0.1"}:
+        return urlunparse(parsed._replace(scheme="http"))
+    return url
+
+
 def _base_url() -> str:
-    return os.environ.get("BASE_URL", "http://localhost:5000").rstrip("/")
+    url = os.environ.get("BASE_URL", "http://localhost:5000").rstrip("/")
+    return _normalize_localhost_url(url)
 
 
 @pytest.fixture(scope="session")
