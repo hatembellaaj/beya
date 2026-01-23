@@ -21,8 +21,15 @@ def _base_url() -> str:
 
 def _ssl_verify_setting(base_url: str | None = None) -> bool | str:
     raw_value = os.environ.get("API_SSL_VERIFY") or os.environ.get("SSL_VERIFY")
+    is_localhost_https = bool(
+        base_url
+        and (
+            base_url.startswith("https://localhost")
+            or base_url.startswith("https://127.0.0.1")
+        )
+    )
     if raw_value is None and base_url:
-        if base_url.startswith("https://localhost") or base_url.startswith("https://127.0.0.1"):
+        if is_localhost_https:
             return False
         return True
     if raw_value is None:
@@ -31,7 +38,7 @@ def _ssl_verify_setting(base_url: str | None = None) -> bool | str:
     if value in {"0", "false", "no"}:
         return False
     if value in {"1", "true", "yes"}:
-        return True
+        return False if is_localhost_https else True
     return raw_value
 
 

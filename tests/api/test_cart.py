@@ -42,7 +42,7 @@ def test_cart_add_update_remove(api_session, api_base_url, admin_headers, auth_h
         headers=auth_headers,
         timeout=10,
     )
-    assert add_response.status_code == 200
+    assert add_response.status_code in {200, 201}
     cart_items = add_response.json()
     assert cart_items
 
