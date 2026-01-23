@@ -1,6 +1,5 @@
 import os
 import time
-from urllib.parse import urlparse, urlunparse
 
 import pytest
 import requests
@@ -10,9 +9,8 @@ from urllib3.util.retry import Retry
 
 
 def _normalize_localhost_url(url: str) -> str:
-    parsed = urlparse(url)
-    if parsed.scheme == "https" and parsed.hostname in {"localhost", "127.0.0.1"}:
-        return urlunparse(parsed._replace(scheme="http"))
+    if "://" not in url:
+        return f"http://{url}"
     return url
 
 
