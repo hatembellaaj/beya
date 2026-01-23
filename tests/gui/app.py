@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -41,7 +42,10 @@ def run_suite(suite: str):
     env = os.environ.copy()
     env.update(env_var)
 
+    REPORTS_DIR.mkdir(parents=True, exist_ok=True)
     cmd = [
+        sys.executable,
+        "-m",
         "pytest",
         test_path,
         "--html",
@@ -49,8 +53,15 @@ def run_suite(suite: str):
         "--self-contained-html",
     ]
 
-    REPORTS_DIR.mkdir(parents=True, exist_ok=True)
-    subprocess.run(cmd, env=env, check=False)
+    try:
+        subprocess.run(cmd, env=env, check=False)
+    except FileNotFoundError as exc:
+        report_path.write_text(
+            "<html><body><h1>Erreur lancement tests</h1>"
+            "<p>Impossible d'exécuter pytest.</p>"
+            f"<pre>{exc}</pre></body></html>",
+            encoding="utf-8",
+        )
 
     return redirect(url_for("show_report", report_name=report_name))
 
