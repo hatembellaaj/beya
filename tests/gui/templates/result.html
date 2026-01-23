@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <title>Résultat des tests</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 40px;
+        background-color: #f7f7f7;
+      }
+      .card {
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      a {
+        color: #0055cc;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      iframe {
+        width: 100%;
+        height: 80vh;
+        border: 1px solid #ddd;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Résultat des tests</h1>
+      <p>
+        Rapport généré :
+        <a href="/reports/{{ report_name }}" target="_blank">{{ report_name }}</a>
+      </p>
+      <iframe src="/reports/{{ report_name }}" title="Rapport Pytest"></iframe>
+    </div>
+  </body>
+</html>

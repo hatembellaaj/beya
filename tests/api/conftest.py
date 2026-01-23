@@ -1,8 +1,12 @@
 import os
+import time
 from urllib.parse import urlparse, urlunparse
 
 import pytest
 import requests
+import urllib3
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 
 def _normalize_localhost_url(url: str) -> str:
@@ -17,6 +21,16 @@ def _base_url() -> str:
     return _normalize_localhost_url(url)
 
 
+def _ssl_verify_setting() -> bool | str:
+    raw_value = os.environ.get("API_SSL_VERIFY", os.environ.get("SSL_VERIFY", "true"))
+    value = raw_value.strip().lower()
+    if value in {"0", "false", "no"}:
+        return False
+    if value in {"1", "true", "yes"}:
+        return True
+    return raw_value
+
+
 @pytest.fixture(scope="session")
 def api_base_url() -> str:
     return _base_url()
@@ -25,6 +39,21 @@ def api_base_url() -> str:
 @pytest.fixture(scope="session")
 def api_session() -> requests.Session:
     session = requests.Session()
+    verify = _ssl_verify_setting()
+    session.verify = verify
+    if verify is False:
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    retries = Retry(
+        total=3,
+        connect=3,
+        read=3,
+        backoff_factor=0.3,
+        status_forcelist=(502, 503, 504),
+        allowed_methods=("GET", "POST", "PUT", "PATCH", "DELETE"),
+    )
+    adapter = HTTPAdapter(max_retries=retries)
+    session.mount("http://", adapter)
+    session.mount("https://", adapter)
     yield session
     session.close()
 
@@ -55,6 +84,33 @@ def _login(api_session: requests.Session, base_url: str, credentials: dict) -> s
     response.raise_for_status()
     payload = response.json()
     return payload["token"]
+
+
+def _wait_for_api(api_session: requests.Session, base_url: str, timeout_s: int = 30) -> None:
+    deadline = time.monotonic() + timeout_s
+    last_error: Exception | None = None
+    while time.monotonic() < deadline:
+        try:
+            response = api_session.get(f"{base_url}/api/categories", timeout=5)
+            if response.status_code < 500:
+                return
+        except requests.RequestException as exc:
+            last_error = exc
+        time.sleep(1)
+    if last_error:
+        raise RuntimeError(
+            "API indisponible ou connexion fermée. Vérifiez que le backend est démarré "
+            "et écoute sur BASE_URL."
+        ) from last_error
+    raise RuntimeError(
+        "API indisponible ou connexion fermée. Vérifiez que le backend est démarré "
+        "et écoute sur BASE_URL."
+    )
+
+
+@pytest.fixture(scope="session", autouse=True)
+def ensure_api_ready(api_session: requests.Session, api_base_url: str) -> None:
+    _wait_for_api(api_session, api_base_url)
 
 
 @pytest.fixture(scope="session")

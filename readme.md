@@ -468,6 +468,21 @@ dotnet run      # Windows
 - Des scénarios manuels sont disponibles via Swagger. Vous pouvez ajouter des tests d’intégration ou unitaires selon vos besoins (xUnit, NUnit…).
 - Le plan de test détaillé est disponible dans `docs/test-qualite-logiciel.md`.
 
+### 🖥️ Lancer les tests via une interface graphique
+Une petite interface web est disponible pour lancer les tests et consulter le rapport HTML directement dans le navigateur.
+
+```bash
+pip install flask pytest pytest-html
+python tests/gui/app.py
+```
+
+Ouvrez `http://localhost:5050`, puis renseignez `BASE_URL` (tests API) ou `UI_BASE_URL` (tests UI). Le rapport est affiché dans la page et sauvegardé dans `tests/gui/reports/`.
+
+> L’interface lance les tests via `python -m pytest` pour éviter les erreurs « fichier introuvable » sous Windows.
+
+> Si l’API utilise un certificat auto-signé, cochez **Désactiver la vérification SSL** ou lancez les tests API avec `API_SSL_VERIFY=false`.
+> Assurez-vous que le backend est démarré et accessible sur `BASE_URL` avant de lancer les tests (sinon erreur de connexion).
+
 ### ✅ Lancer les tests automatisés avec des commandes directes
 Ces commandes supposent que l’API tourne déjà sur `http://localhost:5000`.
 
