@@ -22,6 +22,7 @@ def index():
 def run_suite(suite: str):
     base_url = request.form.get("base_url", "").strip()
     ui_base_url = request.form.get("ui_base_url", "").strip()
+    ssl_verify = request.form.get("ssl_verify", "").strip().lower()
     timestamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
     report_name = f"{suite}-{timestamp}.html"
     report_path = REPORTS_DIR / report_name
@@ -29,6 +30,8 @@ def run_suite(suite: str):
     if suite == "api":
         test_path = "tests/api"
         env_var = {"BASE_URL": base_url} if base_url else {}
+        if ssl_verify in {"0", "false", "no"}:
+            env_var["API_SSL_VERIFY"] = "false"
     elif suite == "ui":
         test_path = "tests/ui"
         env_var = {"UI_BASE_URL": ui_base_url} if ui_base_url else {}

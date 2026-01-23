@@ -478,6 +478,8 @@ python tests/gui/app.py
 
 Ouvrez `http://localhost:5050`, puis renseignez `BASE_URL` (tests API) ou `UI_BASE_URL` (tests UI). Le rapport est affiché dans la page et sauvegardé dans `tests/gui/reports/`.
 
+> Si l’API utilise un certificat auto-signé, cochez **Désactiver la vérification SSL** ou lancez les tests API avec `API_SSL_VERIFY=false`.
+
 ### ✅ Lancer les tests automatisés avec des commandes directes
 Ces commandes supposent que l’API tourne déjà sur `http://localhost:5000`.
 

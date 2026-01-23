@@ -47,6 +47,10 @@
       <form method="post" action="/run/api">
         <label for="base_url">BASE_URL (ex: http://localhost:5000)</label>
         <input id="base_url" name="base_url" type="text" placeholder="http://localhost:5000" />
+        <label>
+          <input type="checkbox" name="ssl_verify" value="false" />
+          Désactiver la vérification SSL (certificat auto-signé)
+        </label>
         <button type="submit">Lancer les tests API</button>
       </form>
     </div>
